@@ -1,0 +1,35 @@
+seed: 2024
+
+data:
+  name: mnist
+  root: ~/data/MNIST
+  img_channels: 1
+  img_size: 28
+
+dataloader:
+  num_workers: 16
+  pin_memory: true
+  prefetch_factor: 2
+
+model:
+  target: models.nice.NICE
+  params:
+    data_dim: 784
+    n_coupling_layers: 4
+    mlp_dim: 1000
+    mlp_n_layers: 5
+
+train:
+  n_steps: 300000
+  batch_size: 256
+
+  optim:
+    target: torch.optim.Adam
+    params:
+      lr: 0.001
+      betas: [0.9, 0.999]
+
+  print_freq: 100
+  save_freq: 10000
+  sample_freq: 3000
+  n_samples: 64
