@@ -12,7 +12,7 @@ def expand_dims(x: Tensor, ndim: int):
 class ScalingLayer(InvertibleModule):
     def __init__(self, dim: int):
         super().__init__()
-        self.logscales = nn.Parameter(torch.ones((dim, )))
+        self.logscales = nn.Parameter(torch.zeros((dim, )))
 
     def forward(self, x: Tensor):
         logscales = expand_dims(self.logscales[None, :], x.ndim)
