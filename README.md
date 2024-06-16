@@ -77,8 +77,8 @@ accelerate-launch scripts/test_nice.py sample -c CONFIG --weights WEIGHTS --save
 ### Results
 
 |      Dataset       | Log-likelihood |  BPD   |
-| :----------------: | :------------: | :----: |
-| MNIST (test split) |   -1720.7717   | 3.8335 |
+| :----------------: |:--------------:|:------:|
+| MNIST (test split) |   1932.6956    | 3.4435 |
 
 <p align="center">
   <img src="./assets/nice-mnist.png" width=20% />

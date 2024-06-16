@@ -142,7 +142,14 @@ def main():
         accelerator.save(dict(step=step, best_nll=best_nll), os.path.join(save_path, 'meta.pt'))
 
     def run_step(batch):
-        x = discard_label(batch)
+        # dequantize data
+        x = discard_label(batch)            # [-1, 1], quantized
+        x = (x + 1) / 2                     # [0, 1], quantized
+        x = x + torch.rand_like(x) / 256    # [0, 1+1/256], dequantized
+        x = x / (1 + 1 / 256)               # [0, 1], dequantized
+        xmin, xmax = conf.data.norm_range
+        x = x * (xmax - xmin) + xmin        # [xmin, xmax], dequantized
+        # forward
         z, log_abs_jac = model(x)
         # compute loss
         nll_prior = F.softplus(z) + F.softplus(-z)
@@ -167,7 +174,8 @@ def main():
             samples.append(unwrapped_model.backward(z).clamp(-1, 1))
         samples = torch.cat(samples, dim=0)
         nrow = math.ceil(math.sqrt(conf.train.n_samples))
-        save_image(samples, savepath, nrow=nrow, normalize=True, value_range=(-1, 1))
+        xmin, xmax = conf.data.norm_range
+        save_image(samples, savepath, nrow=nrow, normalize=True, value_range=(xmin, xmax))
 
     # START TRAINING
     logger.info('Start training...')

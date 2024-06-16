@@ -5,9 +5,10 @@ data:
   root: ~/data/MNIST
   img_channels: 1
   img_size: 28
+  norm_range: [0, 1]
 
 dataloader:
-  num_workers: 16
+  num_workers: 4
   pin_memory: true
   prefetch_factor: 2
 

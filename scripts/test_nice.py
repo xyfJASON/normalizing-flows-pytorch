@@ -86,7 +86,14 @@ def main():
         nlls, bpds = [], []
         with torch.no_grad():
             for x in tqdm.tqdm(test_loader, desc='Evaluating', disable=not accelerator.is_main_process):
-                x = discard_label(x)
+                # dequantize data
+                x = discard_label(x)                # [-1, 1], quantized
+                x = (x + 1) / 2                     # [0, 1], quantized
+                x = x + torch.rand_like(x) / 256    # [0, 1+1/256], dequantized
+                x = x / (1 + 1 / 256)               # [0, 1], dequantized
+                xmin, xmax = conf.data.norm_range
+                x = x * (xmax - xmin) + xmin        # [xmin, xmax], dequantized
+                # forward
                 z, log_abs_jac = model(x)
                 nll_prior = F.softplus(z) + F.softplus(-z)
                 nll_prior = nll_prior.flatten(start_dim=1).sum(dim=1)
@@ -122,8 +129,9 @@ def main():
                 sample = accelerator.gather(sample)[:bs]
                 if accelerator.is_main_process:
                     for x in sample:
-                        x = image_norm_to_float(x).cpu()
-                        save_image(x, os.path.join(args.save_dir, f'{idx}.png'))
+                        xmin, xmax = conf.data.norm_range
+                        savepath = os.path.join(args.save_dir, f'{idx}.png')
+                        save_image(x, savepath, normalize=True, value_range=(xmin, xmax))
                         idx += 1
         logger.info(f'Samples are saved to {args.save_dir}')
         logger.info('End of sampling')
